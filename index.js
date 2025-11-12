@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 // middleware
 app.use(cors());
-app.use(express.json());    
+app.use(express.json());
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -63,7 +63,20 @@ async function run() {
             res.send(result)
         })
 
-        // delate one bills
+        // update one bill
+        app.put("/my-bills/:id", async (req, res) => {
+            const { id } = req.params;
+            const data = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const update = {
+                $set: data,
+            };
+            const result = await myBillsCollection.updateOne(filter, update);
+
+            res.send(result);
+        });
+
+        // delate one bill
         app.delete("/my-bills/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
