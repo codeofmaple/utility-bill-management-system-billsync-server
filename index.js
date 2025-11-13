@@ -63,28 +63,39 @@ async function run() {
         const billsCollection = db.collection("bills")
         const myBillsCollection = db.collection("my_bills")
 
+        // get all bills
         app.get('/bills', async (req, res) => {
+            const result = await billsCollection.find().toArray();
+            res.send(result)
+        })
+
+
+        app.get('/filter', async (req, res) => {
             const { category, search } = req.query;
             let query = {};
 
-            // filter category
+            // filter by category
             if (category && category !== 'all') {
                 query.category = category;
             }
 
             // filter by search
             if (search) {
-                query.$or = [
-                    { title: { $regex: search, $options: 'i' } },
-                    { category: { $regex: search, $options: 'i' } },
-                    { location: { $regex: search, $options: 'i' } }
-                ];
+                const searchQuery = {
+                    $or: [
+                        { title: { $regex: search, $options: 'i' } },
+                        { category: { $regex: search, $options: 'i' } },
+                        { location: { $regex: search, $options: 'i' } }
+                    ]
+                };
+
+                // filter with category and search
+                query = Object.keys(query).length ? { $and: [query, searchQuery] } : searchQuery;
             }
 
             const result = await billsCollection.find(query).toArray();
             res.send(result);
-        })
-
+        });
 
         // get 6 by recent
         app.get('/recent-bills', async (req, res) => {
