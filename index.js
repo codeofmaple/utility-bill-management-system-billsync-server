@@ -63,11 +63,28 @@ async function run() {
         const billsCollection = db.collection("bills")
         const myBillsCollection = db.collection("my_bills")
 
-        // get all bills
         app.get('/bills', async (req, res) => {
-            const result = await billsCollection.find().toArray();
-            res.send(result)
+            const { category, search } = req.query;
+            let query = {};
+
+            // filter category
+            if (category && category !== 'all') {
+                query.category = category;
+            }
+
+            // filter by search
+            if (search) {
+                query.$or = [
+                    { title: { $regex: search, $options: 'i' } },
+                    { category: { $regex: search, $options: 'i' } },
+                    { location: { $regex: search, $options: 'i' } }
+                ];
+            }
+
+            const result = await billsCollection.find(query).toArray();
+            res.send(result);
         })
+
 
         // get 6 by recent
         app.get('/recent-bills', async (req, res) => {
@@ -127,9 +144,6 @@ async function run() {
             const result = await myBillsCollection.deleteOne(filter)
             res.send(result)
         })
-
-
-
 
         await client.db("admin").command({ ping: 1 });//have to comment later
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
