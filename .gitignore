@@ -1,3 +1,4 @@
 node_modules
 .env
 bills-sync-firebase-admin-key.json
+.vercel
