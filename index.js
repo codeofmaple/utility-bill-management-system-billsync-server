@@ -18,6 +18,32 @@ admin.initializeApp({
 });
 
 
+// user auth middleware || firebase
+const verifyFirebaseToken = async (req, res, next) => {
+    const authorization = req.headers.authorization;
+    // step 1
+    if (!authorization) {
+        console.log('No Authorization header');
+        return res.status(401).send({ message: 'Unauthorized access' });
+    }
+    // step 2
+    const token = authorization.split(" ")[1]
+    if (!token) {
+        console.log('No token available');
+        return res.status(401).send({ message: 'Unauthorized access' });
+    }
+    // step 3
+    try {
+        const decoded = await admin.auth().verifyIdToken(token)
+        req.token_email = decoded.email
+        next()
+    } catch {
+        console.error('verifyIdToken error:', error);
+        return res.status(401).send({ message: 'Unauthorized access' });
+    }
+}
+
+
 // mongodb database
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.dwmxail.mongodb.net/?appName=Cluster0`;
@@ -50,8 +76,8 @@ async function run() {
             res.send(result)
         })
 
-        // get 1 with id
-        app.get('/bills/:id', async (req, res) => {
+        // get 1 with id //
+        app.get('/bills/:id', verifyFirebaseToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const result = await billsCollection.findOne(filter)
@@ -60,21 +86,31 @@ async function run() {
 
         // _____________________
         // my-bills
-        // get bills
-        app.get('/my-bills', async (req, res) => {
+        // get bills by user email 
+        app.get('/my-bills', verifyFirebaseToken, async (req, res) => {
             const result = await myBillsCollection.find().toArray();
             res.send(result)
         })
 
+
+
+
+
+
+
+
+
+
+
         // post one bills
-        app.post('/my-bills', async (req, res) => {
+        app.post('/my-bills', verifyFirebaseToken, async (req, res) => {
             const data = req.body
             const result = await myBillsCollection.insertOne(data);
             res.send(result)
         })
 
         // update one bill
-        app.put("/my-bills/:id", async (req, res) => {
+        app.put("/my-bills/:id", verifyFirebaseToken, async (req, res) => {
             const { id } = req.params;
             const data = req.body;
             const filter = { _id: new ObjectId(id) };
@@ -87,7 +123,7 @@ async function run() {
         });
 
         // delate one bill
-        app.delete("/my-bills/:id", async (req, res) => {
+        app.delete("/my-bills/:id", verifyFirebaseToken, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const result = await myBillsCollection.deleteOne(filter)
