@@ -88,19 +88,17 @@ async function run() {
         // my-bills
         // get bills by user email 
         app.get('/my-bills', verifyFirebaseToken, async (req, res) => {
-            const result = await myBillsCollection.find().toArray();
+            const email = req.query.email
+            query = {}
+            if (email) {
+                query.email = email;
+                if (email !== req.token_email) {
+                    return res.status(403).send({ massage: 'unauthorized access' })
+                }
+            }
+            const result = await myBillsCollection.find(query).toArray();
             res.send(result)
         })
-
-
-
-
-
-
-
-
-
-
 
         // post one bills
         app.post('/my-bills', verifyFirebaseToken, async (req, res) => {
