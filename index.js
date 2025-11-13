@@ -58,7 +58,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
     try {
-        await client.connect(); //have to comment later
+        // await client.connect(); //have to comment later
         const db = client.db("billsync_db")
         const billsCollection = db.collection("bills")
         const myBillsCollection = db.collection("my_bills")
@@ -69,7 +69,7 @@ async function run() {
             res.send(result)
         })
 
-
+        // filter
         app.get('/filter', async (req, res) => {
             const { category, search } = req.query;
             let query = {};
@@ -156,7 +156,7 @@ async function run() {
             res.send(result)
         })
 
-        await client.db("admin").command({ ping: 1 });//have to comment later
+        // await client.db("admin").command({ ping: 1 });//have to comment later
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
